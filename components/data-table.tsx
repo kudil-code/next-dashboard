@@ -160,16 +160,16 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
     accessorKey: "nama_paket",
     header: "Nama Paket",
     cell: ({ row }) => (
-      <div className="max-w-xs truncate" title={row.original.nama_paket}>
+      <div className="max-w-xs break-words leading-tight" title={row.original.nama_paket}>
         {row.original.nama_paket}
       </div>
     ),
   },
   {
     accessorKey: "kl_pd_instansi",
-    header: "KL PD Instansi",
+    header: () => <div className="w-32 text-center">KL PD Instansi</div>,
     cell: ({ row }) => (
-      <div className="w-32">
+      <div className="w-32 flex justify-center">
         <Badge variant="outline" className="text-muted-foreground px-1.5">
           {row.original.kl_pd_instansi}
         </Badge>
@@ -178,18 +178,18 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
   },
   {
     accessorKey: "tanggal_pembuatan",
-    header: "TGL Pembuatan",
+    header: () => <div className="w-24 text-center">TGL Pembuatan</div>,
     cell: ({ row }) => (
-      <div className="text-sm">
+      <div className="w-24 text-center text-sm">
         {new Date(row.original.tanggal_pembuatan).toLocaleDateString('id-ID')}
       </div>
     ),
   },
   {
     accessorKey: "nilai_hps_paket",
-    header: () => <div className="w-full text-right">Nilai HPS</div>,
+    header: () => <div className="w-32 text-center">Nilai HPS</div>,
     cell: ({ row }) => (
-      <div className="text-right font-medium">
+      <div className="w-32 text-center font-medium">
         Rp {row.original.nilai_hps_paket.toLocaleString('id-ID')}
       </div>
     ),
@@ -198,7 +198,7 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
     accessorKey: "lokasi_pekerjaan",
     header: "Lokasi Pekerjaan",
     cell: ({ row }) => (
-      <div className="max-w-xs truncate" title={row.original.lokasi_pekerjaan}>
+      <div className="max-w-xs break-words leading-tight" title={row.original.lokasi_pekerjaan}>
         {row.original.lokasi_pekerjaan}
       </div>
     ),
@@ -239,7 +239,7 @@ function DraggableRow({ row }: { row: Row<z.infer<typeof schema>> }) {
       data-state={row.getIsSelected() && "selected"}
       data-dragging={isDragging}
       ref={setNodeRef}
-      className="relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:opacity-80"
+      className="relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:opacity-80 h-auto"
       style={{
         transform: CSS.Transform.toString(transform),
         transition: transition,
@@ -349,7 +349,7 @@ export function DataTable({
                   </TableRow>
                 ))}
               </TableHeader>
-              <TableBody className="**:data-[slot=table-cell]:first:w-8">
+              <TableBody className="**:data-[slot=table-cell]:first:w-8 **:data-[slot=table-cell]:whitespace-normal">
                 {table.getRowModel().rows?.length ? (
                   <SortableContext
                     items={dataIds}
@@ -395,7 +395,7 @@ export function DataTable({
                   />
                 </SelectTrigger>
                 <SelectContent side="top">
-                  {[10, 20, 30, 40, 50].map((pageSize) => (
+                  {[10, 50, 100].map((pageSize) => (
                     <SelectItem key={pageSize} value={`${pageSize}`}>
                       {pageSize}
                     </SelectItem>
