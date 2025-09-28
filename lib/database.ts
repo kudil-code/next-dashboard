@@ -28,4 +28,6 @@ export async function testConnection() {
   }
 }
 
+// Export pool as db for backward compatibility
+export const db = pool;
 export { pool };

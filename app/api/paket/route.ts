@@ -3,7 +3,17 @@ import { pool } from '@/lib/database';
 
 // GET /api/paket - Get all paket with search
 export async function GET(request: NextRequest) {
+  // Cache headers for 1 hour (3600 seconds)
+  const cacheHeaders = {
+    'Cache-Control': 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=7200',
+    'CDN-Cache-Control': 'max-age=3600',
+    'Vercel-CDN-Cache-Control': 'max-age=3600'
+  }
+
   try {
+    const startTime = Date.now()
+    console.log('🔄 [CACHE MISS] Fetching fresh tender data from database...')
+    
     const { searchParams } = new URL(request.url);
     const q = searchParams.get('q') || '';
     const page = parseInt(searchParams.get('page') || '1');
@@ -31,7 +41,10 @@ export async function GET(request: NextRequest) {
       [...params, limit, offset]
     );
     
-    return NextResponse.json({ 
+    const endTime = Date.now()
+    const queryTime = endTime - startTime
+    
+    const response = { 
       success: true, 
       data: rows,
       pagination: {
@@ -40,12 +53,28 @@ export async function GET(request: NextRequest) {
         limit,
         totalPages: Math.ceil(total / limit)
       }
-    });
+    }
+    
+    console.log('✅ [CACHE] Fresh tender data generated:', {
+      totalRecords: total,
+      returnedRecords: rows.length,
+      query: q || 'all',
+      page
+    })
+    console.log(`⏱️ [PERFORMANCE] Database queries took: ${queryTime}ms`)
+    
+    return NextResponse.json(response, { headers: cacheHeaders });
   } catch (error) {
-    console.error('Error fetching paket data:', error);
+    console.error('❌ [ERROR] Failed to fetch paket data:', error);
+    // Don't cache error responses
     return NextResponse.json(
       { success: false, error: 'Failed to fetch data' },
-      { status: 500 }
+      { 
+        status: 500,
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate'
+        }
+      }
     );
   }
 }

@@ -68,6 +68,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import {
   Select,
@@ -459,6 +460,43 @@ export function DataTable({
 function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
   const isMobile = useIsMobile()
 
+  const handleDownload = async () => {
+    try {
+      const response = await fetch(`/api/paket/${item.id}/download`)
+      
+      if (!response.ok) {
+        const errorData = await response.json()
+        alert(`Error: ${errorData.error || 'Failed to download file'}`)
+        return
+      }
+
+      // Get filename from Content-Disposition header
+      const contentDisposition = response.headers.get('Content-Disposition')
+      let filename = `${item.kode_paket}.html`
+      
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="(.+)"/)
+        if (filenameMatch) {
+          filename = filenameMatch[1]
+        }
+      }
+
+      // Create blob and download
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (error) {
+      console.error('Download error:', error)
+      alert('Failed to download file. Please try again.')
+    }
+  }
+
   return (
     <Drawer direction={isMobile ? "bottom" : "right"}>
       <DrawerTrigger asChild>
@@ -474,40 +512,70 @@ function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
           </DrawerDescription>
         </DrawerHeader>
         <div className="flex flex-col gap-4 overflow-y-auto px-4 text-sm">
-          <form className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-3">
               <Label htmlFor="kode_paket">Kode Paket</Label>
-              <Input id="kode_paket" defaultValue={item.kode_paket} />
+              <Input id="kode_paket" value={item.kode_paket} disabled />
             </div>
             <div className="flex flex-col gap-3">
               <Label htmlFor="nama_paket">Nama Paket</Label>
-              <Input id="nama_paket" defaultValue={item.nama_paket} />
+              <Textarea 
+                id="nama_paket" 
+                value={item.nama_paket} 
+                disabled 
+                rows={3}
+                className="resize-none"
+              />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col gap-3">
-                <Label htmlFor="kl_pd_instansi">KL PD Instansi</Label>
-                <Input id="kl_pd_instansi" defaultValue={item.kl_pd_instansi} />
-              </div>
-              <div className="flex flex-col gap-3">
-                <Label htmlFor="tanggal_pembuatan">Tanggal Pembuatan</Label>
-                <Input id="tanggal_pembuatan" defaultValue={item.tanggal_pembuatan} />
-              </div>
+            <div className="flex flex-col gap-3">
+              <Label htmlFor="kl_pd_instansi">KL PD Instansi</Label>
+              <Textarea 
+                id="kl_pd_instansi" 
+                value={item.kl_pd_instansi} 
+                disabled 
+                rows={2}
+                className="resize-none"
+              />
+            </div>
+            <div className="flex flex-col gap-3">
+              <Label htmlFor="tanggal_pembuatan">Tanggal Pembuatan</Label>
+              <Input 
+                id="tanggal_pembuatan" 
+                value={new Date(item.tanggal_pembuatan).toLocaleDateString('id-ID')} 
+                disabled 
+              />
             </div>
             <div className="flex flex-col gap-3">
               <Label htmlFor="nilai_hps_paket">Nilai HPS</Label>
-              <Input id="nilai_hps_paket" defaultValue={item.nilai_hps_paket.toString()} />
+              <Input 
+                id="nilai_hps_paket" 
+                value={`Rp ${item.nilai_hps_paket.toLocaleString('id-ID')}`} 
+                disabled 
+              />
             </div>
             <div className="flex flex-col gap-3">
               <Label htmlFor="lokasi_pekerjaan">Lokasi Pekerjaan</Label>
-              <Input id="lokasi_pekerjaan" defaultValue={item.lokasi_pekerjaan} />
+              <Textarea 
+                id="lokasi_pekerjaan" 
+                value={item.lokasi_pekerjaan} 
+                disabled 
+                rows={3}
+                className="resize-none"
+              />
             </div>
-          </form>
+          </div>
         </div>
         <DrawerFooter>
-          <Button>Submit</Button>
-          <DrawerClose asChild>
-            <Button variant="outline">Done</Button>
-          </DrawerClose>
+          <div className="flex flex-col gap-2">
+            <Button variant="outline">Favorit</Button>
+            <Button variant="outline">Tampilkan Tender Detail (HTML)</Button>
+            <Button variant="outline" onClick={handleDownload}>
+              Download
+            </Button>
+            <DrawerClose asChild>
+              <Button>OK</Button>
+            </DrawerClose>
+          </div>
         </DrawerFooter>
       </DrawerContent>
     </Drawer>
