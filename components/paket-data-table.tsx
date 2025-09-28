@@ -19,12 +19,13 @@ export function PaketDataTable() {
   const [data, setData] = useState<PaketData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [totalCount, setTotalCount] = useState(0)
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true)
-        const response = await fetch('/api/paket')
+        const response = await fetch('/api/paket?limit=1000')
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`)
@@ -44,6 +45,11 @@ export function PaketDataTable() {
             lokasi_pekerjaan: item.lokasi_pekerjaan || '',
           }))
           setData(transformedData)
+          
+          // Set total count if available
+          if (result.pagination) {
+            setTotalCount(result.pagination.total)
+          }
         } else {
           throw new Error('Invalid response format')
         }
@@ -87,10 +93,26 @@ export function PaketDataTable() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <p className="text-muted-foreground">Tidak ada data paket tersedia</p>
+          {totalCount > 0 && (
+            <p className="text-sm text-muted-foreground mt-2">
+              Total data di database: {totalCount}
+            </p>
+          )}
         </div>
       </div>
     )
   }
 
-  return <DataTable data={data} />
+  return (
+    <div>
+      {totalCount > 0 && (
+        <div className="mb-4 px-4 lg:px-6">
+          <p className="text-sm text-muted-foreground">
+            Menampilkan {data.length} dari {totalCount} data paket
+          </p>
+        </div>
+      )}
+      <DataTable data={data} />
+    </div>
+  )
 }

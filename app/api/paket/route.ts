@@ -18,12 +18,29 @@ export async function GET(request: NextRequest) {
       params = [`%${q}%`, `%${q}%`];
     }
     
+    // Get total count
+    const [countResult] = await pool.execute(
+      `SELECT COUNT(*) as total FROM paket_pengadaan ${whereClause}`,
+      params
+    );
+    const total = (countResult as any)[0].total;
+    
+    // Get paginated data
     const [rows] = await pool.execute(
-      `SELECT * FROM paket_pengadaan ${whereClause} LIMIT ? OFFSET ?`,
+      `SELECT * FROM paket_pengadaan ${whereClause} ORDER BY id DESC LIMIT ? OFFSET ?`,
       [...params, limit, offset]
     );
     
-    return NextResponse.json({ success: true, data: rows });
+    return NextResponse.json({ 
+      success: true, 
+      data: rows,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      }
+    });
   } catch (error) {
     console.error('Error fetching paket data:', error);
     return NextResponse.json(
