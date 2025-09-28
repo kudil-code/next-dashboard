@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { pool } from '@/lib/database';
+import { CacheService, CACHE_TTL } from '@/lib/cache';
 
 // GET /api/paket - Get all paket with search
 export async function GET(request: NextRequest) {
@@ -11,59 +12,90 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const startTime = Date.now()
-    console.log('🔄 [CACHE MISS] Fetching fresh tender data from database...')
-    
     const { searchParams } = new URL(request.url);
     const q = searchParams.get('q') || '';
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
-    const offset = (page - 1) * limit;
     
-    let whereClause = '';
-    let params: any[] = [];
+    // Generate cache key based on parameters
+    const cacheKey = CacheService.generatePaketKey(q, page, limit);
+    const countCacheKey = CacheService.generatePaketCountKey(q);
     
-    if (q) {
-      whereClause = `WHERE nama_paket LIKE ? OR kode_paket LIKE ?`;
-      params = [`%${q}%`, `%${q}%`];
-    }
-    
-    // Get total count
-    const [countResult] = await pool.execute(
-      `SELECT COUNT(*) as total FROM paket_pengadaan ${whereClause}`,
-      params
+    // Try to get from cache first
+    const cacheResult = await CacheService.getOrSet(
+      cacheKey,
+      async () => {
+        console.log('🔄 [CACHE MISS] Fetching fresh tender data from database...')
+        
+        const offset = (page - 1) * limit;
+        
+        let whereClause = '';
+        let params: any[] = [];
+        
+        if (q) {
+          whereClause = `WHERE nama_paket LIKE ? OR kode_paket LIKE ?`;
+          params = [`%${q}%`, `%${q}%`];
+        }
+        
+        // Get total count (try cache first)
+        let total: number;
+        const cachedCount = CacheService.get<number>(countCacheKey);
+        
+        if (cachedCount !== undefined) {
+          total = cachedCount;
+          console.log('✅ [CACHE HIT] Using cached count:', total);
+        } else {
+          const [countResult] = await pool.execute(
+            `SELECT COUNT(*) as total FROM paket_pengadaan ${whereClause}`,
+            params
+          );
+          total = (countResult as any)[0].total;
+          
+          // Cache the count separately
+          CacheService.set(countCacheKey, total, CACHE_TTL.PAKET_COUNT);
+          console.log('💾 [CACHE SET] Count cached:', total);
+        }
+        
+        // Get paginated data
+        const [rows] = await pool.execute(
+          `SELECT * FROM paket_pengadaan ${whereClause} ORDER BY id DESC LIMIT ? OFFSET ?`,
+          [...params, limit, offset]
+        );
+        
+        return {
+          success: true, 
+          data: rows,
+          pagination: {
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit)
+          }
+        };
+      },
+      q ? CACHE_TTL.PAKET_SEARCH : CACHE_TTL.PAKET_LIST // Shorter TTL for search results
     );
-    const total = (countResult as any)[0].total;
     
-    // Get paginated data
-    const [rows] = await pool.execute(
-      `SELECT * FROM paket_pengadaan ${whereClause} ORDER BY id DESC LIMIT ? OFFSET ?`,
-      [...params, limit, offset]
-    );
+    const response = cacheResult.data;
+    const fromCache = cacheResult.fromCache;
     
-    const endTime = Date.now()
-    const queryTime = endTime - startTime
-    
-    const response = { 
-      success: true, 
-      data: rows,
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit)
-      }
-    }
-    
-    console.log('✅ [CACHE] Fresh tender data generated:', {
-      totalRecords: total,
-      returnedRecords: rows.length,
+    console.log(`✅ [PAKET] Data ${fromCache ? 'served from cache' : 'generated fresh'}:`, {
+      totalRecords: response.pagination.total,
+      returnedRecords: response.data.length,
       query: q || 'all',
-      page
-    })
-    console.log(`⏱️ [PERFORMANCE] Database queries took: ${queryTime}ms`)
+      page,
+      fromCache
+    });
     
-    return NextResponse.json(response, { headers: cacheHeaders });
+    // Add cache info to response headers for debugging
+    const responseHeaders = {
+      ...cacheHeaders,
+      'X-Cache-Status': fromCache ? 'HIT' : 'MISS',
+      'X-Cache-Key': cacheResult.cacheKey,
+      'X-Cache-TTL': cacheResult.ttl?.toString() || 'unknown'
+    };
+    
+    return NextResponse.json(response, { headers: responseHeaders });
   } catch (error) {
     console.error('❌ [ERROR] Failed to fetch paket data:', error);
     // Don't cache error responses
