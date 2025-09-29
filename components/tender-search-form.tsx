@@ -66,10 +66,11 @@ export function TenderSearchForm({ onSearch }: TenderSearchFormProps) {
   }
 
   return (
-    <Card className="mb-6">
-      <CardHeader>
-        <CardTitle>Cari Tender</CardTitle>
-      </CardHeader>
+    <div className="px-4 lg:px-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Cari Tender</CardTitle>
+        </CardHeader>
       <CardContent className="space-y-4">
         {/* Keyword Search */}
         <div className="space-y-2">
@@ -166,6 +167,7 @@ export function TenderSearchForm({ onSearch }: TenderSearchFormProps) {
           </Button>
         </div>
       </CardContent>
-    </Card>
+      </Card>
+    </div>
   )
 }
