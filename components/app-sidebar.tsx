@@ -46,6 +46,12 @@ const data = {
       title: "Tender",
       url: "#",
       icon: IconReceipt,
+      items: [
+        {
+          title: "Cari Tender",
+          url: "/cari-tender",
+        },
+      ],
     },
     {
       title: "Favorit",
