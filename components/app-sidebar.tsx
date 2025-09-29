@@ -18,6 +18,7 @@ import {
 } from "@tabler/icons-react"
 
 import { NavMain } from "@/components/nav-main"
+import { NavCollapsible } from "@/components/nav-collapsible"
 import { NavSecondary } from "@/components/nav-secondary"
 import { NavUser } from "@/components/nav-user"
 import {
@@ -43,11 +44,6 @@ const data = {
       icon: IconDashboard,
     },
     {
-      title: "Tender",
-      url: "#",
-      icon: IconReceipt,
-    },
-    {
       title: "Favorit",
       url: "/favorites",
       icon: IconHeart,
@@ -66,6 +62,20 @@ const data = {
       title: "Tagihan",
       url: "#",
       icon: IconCurrencyDollar,
+    },
+  ],
+  navTender: [
+    {
+      title: "Tender",
+      url: "#",
+      icon: IconReceipt,
+      items: [
+        {
+          title: "Cari Tender",
+          url: "/tender/cari",
+          icon: IconSearch,
+        },
+      ],
     },
   ],
   navClouds: [
@@ -155,6 +165,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
+        <NavCollapsible items={data.navTender} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>

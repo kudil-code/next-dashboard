@@ -1,8 +1,7 @@
 "use client"
 
-import * as React from "react"
-import { useEffect, useState } from "react"
-import { DataTable } from "./data-table"
+import React from "react"
+import { DataTableWrapper } from "./data-table-wrapper"
 
 // Paket data type based on MySQL schema
 export interface PaketData {
@@ -17,104 +16,24 @@ export interface PaketData {
 }
 
 export function PaketDataTable() {
-  const [data, setData] = useState<PaketData[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [totalCount, setTotalCount] = useState(0)
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true)
-        const response = await fetch('/api/paket?limit=1000')
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
-        }
-        
-        const result = await response.json()
-        
-        if (result.success && result.data) {
-          // Transform the data to match our schema
-          const transformedData = result.data.map((item: any) => ({
-            id: item.id,
-            md5_hash: item.md5_hash || '',
-            kode_paket: item.kode_paket || '',
-            nama_paket: item.nama_paket || '',
-            kl_pd_instansi: item.kl_pd_instansi || '',
-            tanggal_pembuatan: item.tanggal_pembuatan || '',
-            nilai_hps_paket: parseFloat(item.nilai_hps_paket) || 0,
-            lokasi_pekerjaan: item.lokasi_pekerjaan || '',
-          }))
-          setData(transformedData)
-          
-          // Set total count if available
-          if (result.pagination) {
-            setTotalCount(result.pagination.total)
-          }
-        } else {
-          throw new Error('Invalid response format')
-        }
-      } catch (err) {
-        console.error('Error fetching paket data:', err)
-        setError(err instanceof Error ? err.message : 'Failed to fetch data')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchData()
-  }, [])
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Memuat data paket...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <p className="text-destructive mb-2">Error: {error}</p>
-          <p className="text-sm text-muted-foreground">
-            Pastikan MySQL database berjalan dan terhubung
-          </p>
-        </div>
-      </div>
-    )
-  }
-
-  if (data.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <p className="text-muted-foreground">Tidak ada data paket tersedia</p>
-          {totalCount > 0 && (
-            <p className="text-sm text-muted-foreground mt-2">
-              Total data di database: {totalCount}
-            </p>
-          )}
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <div>
-      {totalCount > 0 && (
-        <div className="mb-4 px-4 lg:px-6">
-          <p className="text-sm text-muted-foreground">
-            Menampilkan {data.length} dari {totalCount} data paket
-          </p>
-        </div>
-      )}
-      <DataTable data={data} />
-    </div>
+    <DataTableWrapper<PaketData>
+      endpoint="/api/paket"
+      limit={1000}
+      emptyMessage="Tidak ada data paket tersedia"
+      errorMessage="Pastikan MySQL database berjalan dan terhubung"
+      loadingMessage="Memuat data paket..."
+      showTotalCount={true}
+      dataTransform={(item: any) => ({
+        id: item.id,
+        md5_hash: item.md5_hash || '',
+        kode_paket: item.kode_paket || '',
+        nama_paket: item.nama_paket || '',
+        kl_pd_instansi: item.kl_pd_instansi || '',
+        tanggal_pembuatan: item.tanggal_pembuatan || '',
+        nilai_hps_paket: parseFloat(item.nilai_hps_paket) || 0,
+        lokasi_pekerjaan: item.lokasi_pekerjaan || '',
+      })}
+    />
   )
 }
