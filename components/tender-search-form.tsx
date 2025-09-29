@@ -27,6 +27,12 @@ export function TenderSearchForm({ onSearch }: TenderSearchFormProps) {
   const [last30Days, setLast30Days] = useState(false)
 
   const handleSearch = () => {
+    // Validate keyword minimum length
+    if (keyword && keyword.trim().length < 4) {
+      alert('Keyword minimal harus 4 huruf')
+      return
+    }
+    
     // Validate HPS range
     const minValue = hpsMin ? parseFloat(hpsMin) : 0
     const maxValue = hpsMax ? parseFloat(hpsMax) : Infinity
@@ -78,10 +84,14 @@ export function TenderSearchForm({ onSearch }: TenderSearchFormProps) {
           <Input
             id="keyword"
             type="text"
-            placeholder="Masukkan kata kunci..."
+            placeholder="Masukkan kata kunci (minimal 4 huruf)..."
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
+            className={keyword && keyword.trim().length > 0 && keyword.trim().length < 4 ? "border-red-500 focus:border-red-500" : ""}
           />
+          {keyword && keyword.trim().length > 0 && keyword.trim().length < 4 && (
+            <p className="text-sm text-red-500">Keyword minimal harus 4 huruf</p>
+          )}
         </div>
 
         {/* HPS Range */}

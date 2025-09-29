@@ -23,6 +23,7 @@ export function NavMain({
     items?: {
       title: string
       url: string
+      icon?: Icon
     }[]
   }[]
 }) {
@@ -34,6 +35,11 @@ export function NavMain({
       ...prev,
       [title]: !prev[title]
     }))
+  }
+
+  // Check if any sub-item is active to keep parent menu open
+  const isSubItemActive = (item: any) => {
+    return item.items && item.items.some((subItem: any) => pathname === subItem.url)
   }
 
   return (
@@ -62,7 +68,7 @@ export function NavMain({
           {items.map((item) => {
             const isActive = pathname === item.url || (item.items && item.items.some(subItem => pathname === subItem.url))
             const hasSubItems = item.items && item.items.length > 0
-            const isOpen = openItems[item.title]
+            const isOpen = openItems[item.title] || isSubItemActive(item)
 
             return (
               <div key={item.title}>
@@ -74,20 +80,20 @@ export function NavMain({
                     className={isActive ? "bg-sidebar-accent/80 text-sidebar-accent-foreground font-medium" : ""}
                     onClick={hasSubItems ? () => toggleItem(item.title) : undefined}
                   >
-                    {hasSubItems ? (
-                      <div className="flex items-center w-full">
-                        {item.icon && <item.icon />}
-                        <span>{item.title}</span>
-                        <div className="ml-auto">
-                          {isOpen ? <IconChevronDown className="size-4" /> : <IconChevronRight className="size-4" />}
+                      {hasSubItems ? (
+                        <div className="flex items-center w-full">
+                          {item.icon && <item.icon className={isActive ? "scale-125 transition-transform duration-200" : "transition-transform duration-200"} />}
+                          <span>{item.title}</span>
+                          <div className="ml-auto">
+                            {isOpen ? <IconChevronDown className="size-4" /> : <IconChevronRight className="size-4" />}
+                          </div>
                         </div>
-                      </div>
-                    ) : (
-                      <a href={item.url}>
-                        {item.icon && <item.icon />}
-                        <span>{item.title}</span>
-                      </a>
-                    )}
+                      ) : (
+                        <a href={item.url}>
+                          {item.icon && <item.icon className={isActive ? "scale-125 transition-transform duration-200" : "transition-transform duration-200"} />}
+                          <span>{item.title}</span>
+                        </a>
+                      )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 
@@ -105,6 +111,7 @@ export function NavMain({
                             className={`text-sm ${isSubActive ? "bg-sidebar-accent/80 text-sidebar-accent-foreground font-medium" : ""}`}
                           >
                             <a href={subItem.url}>
+                              {subItem.icon && <subItem.icon className={isSubActive ? "scale-125 transition-transform duration-200" : "transition-transform duration-200"} />}
                               <span>{subItem.title}</span>
                             </a>
                           </SidebarMenuButton>

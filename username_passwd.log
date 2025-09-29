@@ -1,0 +1,203 @@
+# Test Users Login Credentials - Next.js Dashboard
+# Generated: $(date)
+# ================================================
+
+# 🔑 ADMIN USERS
+# ==============
+admin@dashboard.com:Admin123!
+superadmin@dashboard.com:SuperAdmin456!
+
+# 👤 REGULAR USERS
+# ================
+john.doe@example.com:Password123!
+jane.smith@example.com:SecurePass456!
+mike.wilson@test.com:TestPass789!
+sarah.jones@demo.com:DemoPass123!
+alex.brown@sample.com:SamplePass456!
+
+# 🧪 TEST USERS
+# =============
+test1@example.com:Test123!
+test2@example.com:Test456!
+demo@example.com:Demo123!
+sample@example.com:Sample123!
+
+# 🔍 EDGE CASE USERS
+# ==================
+long.username.test@example.com:LongPass123!
+special.chars@example.com:Special123!
+unicode@example.com:Unicode123!
+
+# 🆓 FREE PLAN USERS
+# ==================
+free1@example.com:FreePass123!
+free2@example.com:FreePass456!
+
+# 💎 3-MONTH PREMIUM USERS
+# ========================
+premium3_1@example.com:Premium3Pass123!
+premium3_2@example.com:Premium3Pass456!
+
+# 👑 12-MONTH PREMIUM USERS
+# =========================
+premium12_1@example.com:Premium12Pass123!
+premium12_2@example.com:Premium12Pass456!
+
+# ================================================
+# DETAILED USER INFORMATION
+# ================================================
+
+# ADMIN USERS DETAILS
+# -------------------
+# admin@dashboard.com
+#   Username: admin
+#   Password: Admin123!
+#   Role: admin
+#   Company: Dashboard Corp
+#   Phone: +62 814 77777777
+#   Status: Active, Email Verified
+
+# superadmin@dashboard.com
+#   Username: superadmin
+#   Password: SuperAdmin456!
+#   Role: admin
+#   Company: Super Dashboard Corp
+#   Phone: +62 814 88888888
+#   Status: Active, Email Verified
+
+# FREE PLAN USERS DETAILS
+# -----------------------
+# free1@example.com
+#   Username: free_user1
+#   Password: FreePass123!
+#   Role: user
+#   Company: Free Company 1
+#   Phone: +62 811 11111111
+#   Subscription: Free Plan (50 favorites, 50 daily views)
+#   Status: Active, Email Verified
+
+# free2@example.com
+#   Username: free_user2
+#   Password: FreePass456!
+#   Role: user
+#   Company: Free Company 2
+#   Phone: +62 811 22222222
+#   Subscription: Free Plan (50 favorites, 50 daily views)
+#   Status: Active, Email Verified
+
+# 3-MONTH PREMIUM USERS DETAILS
+# ------------------------------
+# premium3_1@example.com
+#   Username: premium3_user1
+#   Password: Premium3Pass123!
+#   Role: user
+#   Company: Premium 3M Company 1
+#   Phone: +62 812 33333333
+#   Subscription: Premium 3 Months (150,000 IDR, unlimited features)
+#   Status: Active, Email Verified
+
+# premium3_2@example.com
+#   Username: premium3_user2
+#   Password: Premium3Pass456!
+#   Role: user
+#   Company: Premium 3M Company 2
+#   Phone: +62 812 44444444
+#   Subscription: Premium 3 Months (150,000 IDR, unlimited features)
+#   Status: Active, Email Verified
+
+# 12-MONTH PREMIUM USERS DETAILS
+# -------------------------------
+# premium12_1@example.com
+#   Username: premium12_user1
+#   Password: Premium12Pass123!
+#   Role: user
+#   Company: Premium 12M Company 1
+#   Phone: +62 813 55555555
+#   Subscription: Premium 12 Months (500,000 IDR, unlimited features)
+#   Status: Active, Email Verified
+
+# premium12_2@example.com
+#   Username: premium12_user2
+#   Password: Premium12Pass456!
+#   Role: user
+#   Company: Premium 12M Company 2
+#   Phone: +62 813 66666666
+#   Subscription: Premium 12 Months (500,000 IDR, unlimited features)
+#   Status: Active, Email Verified
+
+# ================================================
+# SUBSCRIPTION PLANS INFORMATION
+# ================================================
+
+# FREE PLAN
+# ---------
+# Plan ID: 1
+# Plan Name: free
+# Display Name: Free Plan
+# Duration: 0 months (permanent)
+# Price: 0.00 IDR
+# Max Favorites: 50
+# Max Daily Views: 50
+# Features:
+#   - All search functions: true
+#   - Daily tender limit: 50
+#   - Max favorites: 50
+#   - Email notifications: false
+#   - Unlimited favorites: false
+#   - Unlimited daily view: false
+
+# PREMIUM 3 MONTHS
+# ----------------
+# Plan ID: 2
+# Plan Name: premium_3month
+# Display Name: Premium 3 Months
+# Duration: 3 months
+# Price: 150,000.00 IDR
+# Max Favorites: 999,999 (unlimited)
+# Max Daily Views: 999,999 (unlimited)
+# Features:
+#   - All search functions: true
+#   - Unlimited favorites: true
+#   - Unlimited daily view: true
+#   - Email notifications: true
+#   - Daily tender limit: 999,999
+
+# PREMIUM 12 MONTHS
+# -----------------
+# Plan ID: 3
+# Plan Name: premium_12month
+# Display Name: Premium 12 Months
+# Duration: 12 months
+# Price: 500,000.00 IDR
+# Max Favorites: 999,999 (unlimited)
+# Max Daily Views: 999,999 (unlimited)
+# Features:
+#   - All search functions: true
+#   - Unlimited favorites: true
+#   - Unlimited daily view: true
+#   - Email notifications: true
+#   - Daily tender limit: 999,999
+
+# ================================================
+# QUICK REFERENCE FOR TESTING
+# ================================================
+
+# LOGIN TESTING:
+# 1. Go to /login in your application
+# 2. Use any email:password combination from above
+# 3. Test both admin and user roles
+
+# API TESTING:
+# - POST /api/auth/login - Login endpoint
+# - POST /api/auth/register - Register new user
+# - GET /api/users/profile - Get user profile (requires auth)
+
+# SECURITY NOTES:
+# - These are TEST CREDENTIALS ONLY
+# - Do not use in production environments
+# - All passwords are properly hashed using bcrypt
+# - JWT tokens expire after 24 hours
+
+# ================================================
+# END OF FILE
+# ================================================

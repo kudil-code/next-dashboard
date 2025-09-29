@@ -50,6 +50,7 @@ const data = {
         {
           title: "Cari Tender",
           url: "/cari-tender",
+          icon: IconSearch,
         },
       ],
     },
