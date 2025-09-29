@@ -271,7 +271,11 @@ export default function ProfilePage() {
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 md:grid-cols-3">
-              <Button variant="outline" className="h-auto p-4 flex flex-col items-center gap-2">
+              <Button 
+                variant="outline" 
+                className="h-auto p-4 flex flex-col items-center gap-2"
+                onClick={() => router.push('/dashboard')}
+              >
                 <Calendar className="h-6 w-6" />
                 <span>View Dashboard</span>
               </Button>

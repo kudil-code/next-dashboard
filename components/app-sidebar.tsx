@@ -3,17 +3,17 @@
 import * as React from "react"
 import {
   IconCamera,
-  IconChartBar,
   IconDashboard,
   IconFileAi,
   IconFileDescription,
-  IconFolder,
   IconHelp,
   IconInnerShadowTop,
-  IconListDetails,
+  IconKey,
+  IconReceipt,
+  IconRobot,
   IconSearch,
   IconSettings,
-  IconUsers,
+  IconCurrencyDollar,
 } from "@tabler/icons-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -38,28 +38,28 @@ const data = {
   navMain: [
     {
       title: "Dashboard",
-      url: "#",
+      url: "/dashboard",
       icon: IconDashboard,
     },
     {
-      title: "Lifecycle",
+      title: "Tender",
       url: "#",
-      icon: IconListDetails,
+      icon: IconReceipt,
     },
     {
-      title: "Analytics",
+      title: "Auto Bot",
       url: "#",
-      icon: IconChartBar,
+      icon: IconRobot,
     },
     {
-      title: "Projects",
+      title: "Keyword",
       url: "#",
-      icon: IconFolder,
+      icon: IconKey,
     },
     {
-      title: "Team",
+      title: "Tagihan",
       url: "#",
-      icon: IconUsers,
+      icon: IconCurrencyDollar,
     },
   ],
   navClouds: [
