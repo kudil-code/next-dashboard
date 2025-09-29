@@ -86,9 +86,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { FavoriteButton } from "@/components/favorite-button"
 
 export const schema = z.object({
   id: z.number(),
+  md5_hash: z.string(),
   kode_paket: z.string(),
   nama_paket: z.string(),
   kl_pd_instansi: z.string(),
@@ -567,7 +569,7 @@ function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
         </div>
         <DrawerFooter>
           <div className="flex flex-col gap-2">
-            <Button variant="outline">Favorit</Button>
+            <FavoriteButton md5Hash={item.md5_hash} />
             <Button variant="outline">Tampilkan Tender Detail (HTML)</Button>
             <Button variant="outline" onClick={handleDownload}>
               Download

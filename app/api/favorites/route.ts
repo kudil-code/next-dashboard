@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     const userId = authResult.user.userId;
     
     const [favorites] = await pool.execute(
-      'SELECT f.id as favorite_id, f.notes, f.created_at as favorited_at, p.id, p.md5_hash, p.nama_paket, p.kode_paket, p.nilai_pagu_paket, p.kl_pd_instansi, p.satuan_kerja, p.jenis_pengadaan, p.metode_pengadaan, p.lokasi_pekerjaan, p.peserta_non_tender, p.tanggal_pembuatan, p.created_at, p.updated_at FROM user_favorites f JOIN paket_pengadaan p ON f.md5_hash = p.md5_hash WHERE f.user_id = ? ORDER BY f.created_at DESC',
+      'SELECT f.id as favorite_id, f.notes, f.created_at as favorited_at, p.id, p.md5_hash, p.nama_paket, p.kode_paket, p.nilai_hps_paket, p.kl_pd_instansi, p.satuan_kerja, p.jenis_pengadaan, p.metode_pengadaan, p.lokasi_pekerjaan, p.peserta_non_tender, p.tanggal_pembuatan, p.created_at, p.updated_at FROM user_favorites f JOIN paket_pengadaan p ON f.md5_hash = p.md5_hash WHERE f.user_id = ? ORDER BY f.created_at DESC',
       [userId]
     );
     

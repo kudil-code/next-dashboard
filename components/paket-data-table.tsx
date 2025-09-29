@@ -7,6 +7,7 @@ import { DataTable } from "./data-table"
 // Paket data type based on MySQL schema
 export interface PaketData {
   id: number
+  md5_hash: string
   kode_paket: string
   nama_paket: string
   kl_pd_instansi: string
@@ -37,6 +38,7 @@ export function PaketDataTable() {
           // Transform the data to match our schema
           const transformedData = result.data.map((item: any) => ({
             id: item.id,
+            md5_hash: item.md5_hash || '',
             kode_paket: item.kode_paket || '',
             nama_paket: item.nama_paket || '',
             kl_pd_instansi: item.kl_pd_instansi || '',

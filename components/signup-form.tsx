@@ -64,7 +64,7 @@ export function SignupForm({
                   <Input
                     id="email"
                     type="email"
-                    placeholder="john@example.com"
+                    placeholder="john@gmail.com"
                     required
                   />
                 </div>
@@ -73,7 +73,7 @@ export function SignupForm({
                   <Input
                     id="company"
                     type="text"
-                    placeholder="Acme Corporation"
+                    placeholder="PT Company"
                   />
                 </div>
                 <div className="grid gap-3">
@@ -81,7 +81,7 @@ export function SignupForm({
                   <Input
                     id="mobile"
                     type="tel"
-                    placeholder="+1 (555) 123-4567"
+                    placeholder="+62 812 12345678"
                   />
                 </div>
                 <div className="grid gap-3">

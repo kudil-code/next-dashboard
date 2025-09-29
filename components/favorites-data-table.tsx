@@ -4,10 +4,9 @@ import * as React from "react"
 import { useEffect, useState } from "react"
 import { DataTable } from "./data-table"
 
-// Favorites data type based on API response
+// Favorites data type based on API response - mapped to match dashboard schema
 export interface FavoritesData {
   id: number
-  favorite_id: number
   md5_hash: string
   kode_paket: string
   nama_paket: string
@@ -15,8 +14,6 @@ export interface FavoritesData {
   tanggal_pembuatan: string
   nilai_hps_paket: number
   lokasi_pekerjaan: string
-  notes?: string
-  favorited_at: string
 }
 
 export function FavoritesDataTable() {
@@ -24,7 +21,6 @@ export function FavoritesDataTable() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [totalCount, setTotalCount] = useState(0)
-
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -48,10 +44,9 @@ export function FavoritesDataTable() {
         const result = await response.json()
         
         if (result.success && result.data) {
-          // Transform the data to match our schema
+          // Transform the data to match dashboard schema exactly
           const transformedData = result.data.map((item: any) => ({
             id: item.id,
-            favorite_id: item.favorite_id,
             md5_hash: item.md5_hash || '',
             kode_paket: item.kode_paket || '',
             nama_paket: item.nama_paket || '',
@@ -59,8 +54,6 @@ export function FavoritesDataTable() {
             tanggal_pembuatan: item.tanggal_pembuatan || '',
             nilai_hps_paket: parseFloat(item.nilai_hps_paket) || 0,
             lokasi_pekerjaan: item.lokasi_pekerjaan || '',
-            notes: item.notes || '',
-            favorited_at: item.favorited_at || '',
           }))
           setData(transformedData)
           setTotalCount(result.count || transformedData.length)
@@ -77,6 +70,7 @@ export function FavoritesDataTable() {
 
     fetchData()
   }, [])
+
 
   if (loading) {
     return (
@@ -116,9 +110,9 @@ export function FavoritesDataTable() {
   }
 
   return (
-    <div>
+    <div className="px-4 lg:px-6">
       {totalCount > 0 && (
-        <div className="mb-4 px-4 lg:px-6">
+        <div className="mb-4">
           <p className="text-sm text-muted-foreground">
             Menampilkan {data.length} dari {totalCount} paket favorit
           </p>
