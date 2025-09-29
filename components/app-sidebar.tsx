@@ -14,6 +14,7 @@ import {
   IconSearch,
   IconSettings,
   IconCurrencyDollar,
+  IconHeart,
 } from "@tabler/icons-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -45,6 +46,11 @@ const data = {
       title: "Tender",
       url: "#",
       icon: IconReceipt,
+    },
+    {
+      title: "Favorit",
+      url: "/favorites",
+      icon: IconHeart,
     },
     {
       title: "Auto Bot",
