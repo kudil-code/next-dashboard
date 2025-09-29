@@ -110,9 +110,9 @@ export function FavoritesDataTable() {
   }
 
   return (
-    <div className="px-4 lg:px-6">
+    <div className="-mx-4 lg:-mx-6">
       {totalCount > 0 && (
-        <div className="mb-4">
+        <div className="mb-4 px-4 lg:px-6">
           <p className="text-sm text-muted-foreground">
             Menampilkan {data.length} dari {totalCount} paket favorit
           </p>
