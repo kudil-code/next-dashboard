@@ -2,31 +2,10 @@
 
 import * as React from "react"
 import {
-  closestCenter,
-  DndContext,
-  KeyboardSensor,
-  MouseSensor,
-  TouchSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-  type UniqueIdentifier,
-} from "@dnd-kit/core"
-import { restrictToVerticalAxis } from "@dnd-kit/modifiers"
-import {
-  arrayMove,
-  SortableContext,
-  useSortable,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable"
-import { CSS } from "@dnd-kit/utilities"
-import {
   IconChevronLeft,
   IconChevronRight,
   IconChevronsLeft,
   IconChevronsRight,
-  IconDotsVertical,
-  IconGripVertical,
 } from "@tabler/icons-react"
 import {
   ColumnDef,
@@ -49,7 +28,6 @@ import { z } from "zod"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
 import {
   Drawer,
   DrawerClose,
@@ -60,13 +38,6 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
@@ -87,6 +58,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { FavoriteButton } from "@/components/favorite-button"
+import { IconHeart, IconHeartFilled } from "@tabler/icons-react"
 
 export const schema = z.object({
   id: z.number(),
@@ -97,173 +69,20 @@ export const schema = z.object({
   tanggal_pembuatan: z.string(),
   nilai_hps_paket: z.number(),
   lokasi_pekerjaan: z.string(),
+  is_favorite: z.boolean().optional(),
 })
 
-// Create a separate component for the drag handle
-function DragHandle({ id }: { id: number }) {
-  const { attributes, listeners } = useSortable({
-    id,
-  })
 
-  return (
-    <Button
-      {...attributes}
-      {...listeners}
-      variant="ghost"
-      size="icon"
-      className="text-muted-foreground size-7 hover:bg-transparent"
-    >
-      <IconGripVertical className="text-muted-foreground size-3" />
-      <span className="sr-only">Drag to reorder</span>
-    </Button>
-  )
-}
 
-const columns: ColumnDef<z.infer<typeof schema>>[] = [
-  {
-    id: "drag",
-    header: () => null,
-    cell: ({ row }) => <DragHandle id={row.original.id} />,
-  },
-  {
-    id: "select",
-    header: ({ table }) => (
-      <div className="flex items-center justify-center">
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-        />
-      </div>
-    ),
-    cell: ({ row }) => (
-      <div className="flex items-center justify-center">
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
-      </div>
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "kode_paket",
-    header: "Kode Paket",
-    cell: ({ row }) => {
-      return <TableCellViewer item={row.original} />
-    },
-    enableHiding: false,
-  },
-  {
-    accessorKey: "nama_paket",
-    header: "Nama Paket",
-    cell: ({ row }) => (
-      <div className="max-w-xs break-words leading-tight" title={row.original.nama_paket}>
-        {row.original.nama_paket}
-      </div>
-    ),
-  },
-  {
-    accessorKey: "kl_pd_instansi",
-    header: () => <div className="w-32 text-center">KL PD Instansi</div>,
-    cell: ({ row }) => (
-      <div className="w-32 flex justify-center">
-        <Badge variant="outline" className="text-muted-foreground px-1.5">
-          {row.original.kl_pd_instansi}
-        </Badge>
-      </div>
-    ),
-  },
-  {
-    accessorKey: "tanggal_pembuatan",
-    header: () => <div className="w-24 text-center">TGL Pembuatan</div>,
-    cell: ({ row }) => (
-      <div className="w-24 text-center text-sm">
-        {new Date(row.original.tanggal_pembuatan).toLocaleDateString('id-ID')}
-      </div>
-    ),
-  },
-  {
-    accessorKey: "nilai_hps_paket",
-    header: () => <div className="w-32 text-center">Nilai HPS</div>,
-    cell: ({ row }) => (
-      <div className="w-32 text-center font-medium">
-        Rp {row.original.nilai_hps_paket.toLocaleString('id-ID')}
-      </div>
-    ),
-  },
-  {
-    accessorKey: "lokasi_pekerjaan",
-    header: "Lokasi Pekerjaan",
-    cell: ({ row }) => (
-      <div className="max-w-xs break-words leading-tight" title={row.original.lokasi_pekerjaan}>
-        {row.original.lokasi_pekerjaan}
-      </div>
-    ),
-  },
-  {
-    id: "actions",
-    cell: () => (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
-            size="icon"
-          >
-            <IconDotsVertical />
-            <span className="sr-only">Open menu</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-32">
-          <DropdownMenuItem>Edit</DropdownMenuItem>
-          <DropdownMenuItem>Make a copy</DropdownMenuItem>
-          <DropdownMenuItem>Favorite</DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem variant="destructive">Delete</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    ),
-  },
-]
-
-function DraggableRow({ row }: { row: Row<z.infer<typeof schema>> }) {
-  const { transform, transition, setNodeRef, isDragging } = useSortable({
-    id: row.original.id,
-  })
-
-  return (
-    <TableRow
-      data-state={row.getIsSelected() && "selected"}
-      data-dragging={isDragging}
-      ref={setNodeRef}
-      className="relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:opacity-80 h-auto"
-      style={{
-        transform: CSS.Transform.toString(transform),
-        transition: transition,
-      }}
-    >
-      {row.getVisibleCells().map((cell) => (
-        <TableCell key={cell.id}>
-          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-        </TableCell>
-      ))}
-    </TableRow>
-  )
-}
 
 export function DataTable({
   data: initialData,
+  onFavoriteChange,
 }: {
   data: z.infer<typeof schema>[]
+  onFavoriteChange?: () => void
 }) {
   const [data, setData] = React.useState(() => initialData)
-  const [rowSelection, setRowSelection] = React.useState({})
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({})
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -274,17 +93,87 @@ export function DataTable({
     pageIndex: 0,
     pageSize: 10,
   })
-  const sortableId = React.useId()
-  const sensors = useSensors(
-    useSensor(MouseSensor, {}),
-    useSensor(TouchSensor, {}),
-    useSensor(KeyboardSensor, {})
-  )
 
-  const dataIds = React.useMemo<UniqueIdentifier[]>(
-    () => data?.map(({ id }) => id) || [],
-    [data]
-  )
+  const columns: ColumnDef<z.infer<typeof schema>>[] = [
+    {
+      accessorKey: "is_favorite",
+      header: () => <div className="w-12 text-center">Fav</div>,
+      cell: ({ row }) => (
+        <div className="w-12 flex justify-center">
+          {row.original.is_favorite ? (
+            <IconHeartFilled className="h-4 w-4 text-red-500" />
+          ) : (
+            <IconHeart className="h-4 w-4 text-muted-foreground" />
+          )}
+        </div>
+      ),
+      enableHiding: false,
+    },
+    {
+      accessorKey: "kode_paket",
+      header: "Kode Paket",
+      cell: ({ row }) => {
+        return (
+          <div className="flex items-center gap-2">
+            <TableCellViewer item={row.original} onFavoriteChange={onFavoriteChange} />
+            {row.original.is_favorite && (
+              <Badge variant="secondary" className="text-xs bg-red-50 text-red-600 border-red-200">
+                Favorit
+              </Badge>
+            )}
+          </div>
+        )
+      },
+      enableHiding: false,
+    },
+    {
+      accessorKey: "nama_paket",
+      header: "Nama Paket",
+      cell: ({ row }) => (
+        <div className="max-w-xs break-words leading-tight" title={row.original.nama_paket}>
+          {row.original.nama_paket}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "kl_pd_instansi",
+      header: () => <div className="w-32 text-center">KL PD Instansi</div>,
+      cell: ({ row }) => (
+        <div className="w-32 flex justify-center">
+          <Badge variant="outline" className="text-muted-foreground px-1.5">
+            {row.original.kl_pd_instansi}
+          </Badge>
+        </div>
+      ),
+    },
+    {
+      accessorKey: "tanggal_pembuatan",
+      header: () => <div className="w-24 text-center">TGL Pembuatan</div>,
+      cell: ({ row }) => (
+        <div className="w-24 text-center text-sm">
+          {new Date(row.original.tanggal_pembuatan).toLocaleDateString('id-ID')}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "nilai_hps_paket",
+      header: () => <div className="w-32 text-center">Nilai HPS</div>,
+      cell: ({ row }) => (
+        <div className="w-32 text-center font-medium">
+          Rp {row.original.nilai_hps_paket.toLocaleString('id-ID')}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "lokasi_pekerjaan",
+      header: "Lokasi Pekerjaan",
+      cell: ({ row }) => (
+        <div className="max-w-xs break-words leading-tight" title={row.original.lokasi_pekerjaan}>
+          {row.original.lokasi_pekerjaan}
+        </div>
+      ),
+    },
+  ]
 
   const table = useReactTable({
     data,
@@ -292,13 +181,10 @@ export function DataTable({
     state: {
       sorting,
       columnVisibility,
-      rowSelection,
       columnFilters,
       pagination,
     },
     getRowId: (row) => row.id.toString(),
-    enableRowSelection: true,
-    onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
@@ -311,76 +197,55 @@ export function DataTable({
     getFacetedUniqueValues: getFacetedUniqueValues(),
   })
 
-  function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event
-    if (active && over && active.id !== over.id) {
-      setData((data) => {
-        const oldIndex = dataIds.indexOf(active.id)
-        const newIndex = dataIds.indexOf(over.id)
-        return arrayMove(data, oldIndex, newIndex)
-      })
-    }
-  }
 
   return (
     <div className="w-full flex-col justify-start gap-6">
-      <div className="relative flex flex-col gap-4 overflow-auto px-4 lg:px-6">
+      <div className="relative flex flex-col gap-4 overflow-auto">
         <div className="overflow-hidden rounded-lg border">
-          <DndContext
-            collisionDetection={closestCenter}
-            modifiers={[restrictToVerticalAxis]}
-            onDragEnd={handleDragEnd}
-            sensors={sensors}
-            id={sortableId}
-          >
-            <Table>
-              <TableHeader className="bg-muted sticky top-0 z-10">
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => {
-                      return (
-                        <TableHead key={header.id} colSpan={header.colSpan}>
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
-                        </TableHead>
-                      )
-                    })}
-                  </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody className="**:data-[slot=table-cell]:first:w-8 **:data-[slot=table-cell]:whitespace-normal">
-                {table.getRowModel().rows?.length ? (
-                  <SortableContext
-                    items={dataIds}
-                    strategy={verticalListSortingStrategy}
-                  >
-                    {table.getRowModel().rows.map((row) => (
-                      <DraggableRow key={row.id} row={row} />
+          <Table>
+            <TableHeader className="bg-muted sticky top-0 z-10">
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead key={header.id} colSpan={header.colSpan}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                      </TableHead>
+                    )
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody className="**:data-[slot=table-cell]:whitespace-normal">
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
                     ))}
-                  </SortableContext>
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={columns.length}
-                      className="h-24 text-center"
-                    >
-                      No results.
-                    </TableCell>
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </DndContext>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    No results.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
         </div>
-        <div className="flex items-center justify-between px-4">
-          <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
-            {table.getFilteredSelectedRowModel().rows.length} of{" "}
-            {table.getFilteredRowModel().rows.length} row(s) selected.
-          </div>
+        <div className="flex items-center justify-between">
           <div className="flex w-full items-center gap-8 lg:w-fit">
             <div className="hidden items-center gap-2 lg:flex">
               <Label htmlFor="rows-per-page" className="text-sm font-medium">
@@ -459,7 +324,7 @@ export function DataTable({
 }
 
 
-function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
+function TableCellViewer({ item, onFavoriteChange }: { item: z.infer<typeof schema>, onFavoriteChange?: () => void }) {
   const isMobile = useIsMobile()
 
   const handleDownload = async () => {
@@ -569,7 +434,7 @@ function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
         </div>
         <DrawerFooter>
           <div className="flex flex-col gap-2">
-            <FavoriteButton md5Hash={item.md5_hash} />
+            <FavoriteButton md5Hash={item.md5_hash} onFavoriteChange={onFavoriteChange} />
             <Button variant="outline">Tampilkan Tender Detail (HTML)</Button>
             <Button variant="outline" onClick={handleDownload}>
               Download

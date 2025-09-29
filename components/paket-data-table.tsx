@@ -14,6 +14,7 @@ export interface PaketData {
   tanggal_pembuatan: string
   nilai_hps_paket: number
   lokasi_pekerjaan: string
+  is_favorite?: boolean
 }
 
 export function PaketDataTable() {
@@ -21,6 +22,81 @@ export function PaketDataTable() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [totalCount, setTotalCount] = useState(0)
+
+  // Function to check favorite status for a single item
+  const checkFavoriteStatus = async (md5Hash: string): Promise<boolean> => {
+    try {
+      const token = localStorage.getItem('token')
+      if (!token) return false
+
+      const response = await fetch(`/api/favorites/check/${md5Hash}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        return result.success ? result.data.is_favorite : false
+      }
+      return false
+    } catch (error) {
+      console.error('Error checking favorite status:', error)
+      return false
+    }
+  }
+
+  // Function to check favorite status for all items
+  const checkAllFavoriteStatuses = async (items: PaketData[]): Promise<PaketData[]> => {
+    const token = localStorage.getItem('token')
+    if (!token) return items
+
+    try {
+      // Check all favorite statuses in parallel
+      const favoriteChecks = await Promise.all(
+        items.map(async (item) => {
+          const isFavorite = await checkFavoriteStatus(item.md5_hash)
+          return { ...item, is_favorite: isFavorite }
+        })
+      )
+      return favoriteChecks
+    } catch (error) {
+      console.error('Error checking favorite statuses:', error)
+      return items
+    }
+  }
+
+  // Function to refresh data (useful after favorite changes)
+  const refreshData = async () => {
+    const token = localStorage.getItem('token')
+    if (!token) return
+
+    try {
+      const response = await fetch('/api/paket?limit=1000')
+      
+      if (response.ok) {
+        const result = await response.json()
+        
+        if (result.success && result.data) {
+          const transformedData = result.data.map((item: any) => ({
+            id: item.id,
+            md5_hash: item.md5_hash || '',
+            kode_paket: item.kode_paket || '',
+            nama_paket: item.nama_paket || '',
+            kl_pd_instansi: item.kl_pd_instansi || '',
+            tanggal_pembuatan: item.tanggal_pembuatan || '',
+            nilai_hps_paket: parseFloat(item.nilai_hps_paket) || 0,
+            lokasi_pekerjaan: item.lokasi_pekerjaan || '',
+          }))
+          
+          const dataWithFavorites = await checkAllFavoriteStatuses(transformedData)
+          setData(dataWithFavorites)
+        }
+      }
+    } catch (error) {
+      console.error('Error refreshing data:', error)
+    }
+  }
 
   useEffect(() => {
     const fetchData = async () => {
@@ -46,7 +122,10 @@ export function PaketDataTable() {
             nilai_hps_paket: parseFloat(item.nilai_hps_paket) || 0,
             lokasi_pekerjaan: item.lokasi_pekerjaan || '',
           }))
-          setData(transformedData)
+          
+          // Check favorite status for all items
+          const dataWithFavorites = await checkAllFavoriteStatuses(transformedData)
+          setData(dataWithFavorites)
           
           // Set total count if available
           if (result.pagination) {
@@ -106,15 +185,15 @@ export function PaketDataTable() {
   }
 
   return (
-    <div>
+    <div className="px-4 lg:px-6">
       {totalCount > 0 && (
-        <div className="mb-4 px-4 lg:px-6">
+        <div className="mb-4">
           <p className="text-sm text-muted-foreground">
             Menampilkan {data.length} dari {totalCount} data paket
           </p>
         </div>
       )}
-      <DataTable data={data} />
+      <DataTable data={data} onFavoriteChange={refreshData} />
     </div>
   )
 }

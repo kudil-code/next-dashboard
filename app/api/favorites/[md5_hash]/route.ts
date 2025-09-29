@@ -5,14 +5,14 @@ import { authenticateToken } from '@/lib/auth';
 // DELETE /api/favorites/[md5_hash] - Remove paket from favorites
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { md5_hash: string } }
+  { params }: { params: Promise<{ md5_hash: string }> }
 ) {
   try {
     const authResult = authenticateToken(request);
     if (authResult.error) return authResult.error;
     
     const userId = authResult.user.userId;
-    const md5Hash = params.md5_hash;
+    const { md5_hash: md5Hash } = await params;
     
     if (!md5Hash) {
       return NextResponse.json(

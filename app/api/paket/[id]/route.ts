@@ -4,12 +4,13 @@ import { pool } from '@/lib/database';
 // GET /api/paket/[id] - Get paket by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const [rows] = await pool.execute(
       'SELECT * FROM paket_pengadaan WHERE id = ?',
-      [params.id]
+      [id]
     );
     
     if ((rows as any[]).length === 0) {
@@ -32,9 +33,10 @@ export async function GET(
 // PUT /api/paket/[id] - Update paket
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
     const {
       file_name,
@@ -131,7 +133,7 @@ export async function PUT(
       );
     }
     
-    updateValues.push(params.id);
+    updateValues.push(id);
     
     const [result] = await pool.execute(
       `UPDATE paket_pengadaan SET ${updateFields.join(', ')} WHERE id = ?`,
@@ -158,12 +160,13 @@ export async function PUT(
 // DELETE /api/paket/[id] - Delete paket
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const [result] = await pool.execute(
       'DELETE FROM paket_pengadaan WHERE id = ?',
-      [params.id]
+      [id]
     );
     
     if ((result as any).affectedRows === 0) {

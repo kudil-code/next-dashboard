@@ -5,14 +5,14 @@ import { authenticateToken } from '@/lib/auth';
 // GET /api/favorites/check/[md5_hash] - Check if paket is in favorites
 export async function GET(
   request: NextRequest,
-  { params }: { params: { md5_hash: string } }
+  { params }: { params: Promise<{ md5_hash: string }> }
 ) {
   try {
     const authResult = authenticateToken(request);
     if (authResult.error) return authResult.error;
     
     const userId = authResult.user.userId;
-    const md5Hash = params.md5_hash;
+    const { md5_hash: md5Hash } = await params;
     
     if (!md5Hash) {
       return NextResponse.json(

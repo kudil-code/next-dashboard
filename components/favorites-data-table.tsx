@@ -14,6 +14,7 @@ export interface FavoritesData {
   tanggal_pembuatan: string
   nilai_hps_paket: number
   lokasi_pekerjaan: string
+  is_favorite?: boolean
 }
 
 export function FavoritesDataTable() {
@@ -54,6 +55,7 @@ export function FavoritesDataTable() {
             tanggal_pembuatan: item.tanggal_pembuatan || '',
             nilai_hps_paket: parseFloat(item.nilai_hps_paket) || 0,
             lokasi_pekerjaan: item.lokasi_pekerjaan || '',
+            is_favorite: true, // All items in favorites are favorited
           }))
           setData(transformedData)
           setTotalCount(result.count || transformedData.length)
@@ -110,15 +112,15 @@ export function FavoritesDataTable() {
   }
 
   return (
-    <div className="-mx-4 lg:-mx-6">
+    <div className="px-4 lg:px-6">
       {totalCount > 0 && (
-        <div className="mb-4 px-4 lg:px-6">
+        <div className="mb-4">
           <p className="text-sm text-muted-foreground">
             Menampilkan {data.length} dari {totalCount} paket favorit
           </p>
         </div>
       )}
-      <DataTable data={data} />
+      <DataTable data={data} onFavoriteChange={() => window.location.reload()} />
     </div>
   )
 }
