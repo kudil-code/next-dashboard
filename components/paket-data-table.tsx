@@ -17,7 +17,19 @@ export interface PaketData {
   is_favorite?: boolean
 }
 
-export function PaketDataTable() {
+export interface SearchParams {
+  keyword: string
+  hpsMin: string
+  hpsMax: string
+  todayOnly: boolean
+  last30Days: boolean
+}
+
+interface PaketDataTableProps {
+  searchParams?: SearchParams
+}
+
+export function PaketDataTable({ searchParams }: PaketDataTableProps) {
   const [data, setData] = useState<PaketData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -66,19 +78,48 @@ export function PaketDataTable() {
     }
   }
 
+  // Function to build search query parameters
+  const buildSearchParams = (params?: SearchParams) => {
+    const urlParams = new URLSearchParams()
+    urlParams.set('limit', '1000')
+    
+    if (params?.keyword) {
+      urlParams.set('q', params.keyword)
+    }
+    
+    if (params?.hpsMin) {
+      urlParams.set('hps_min', params.hpsMin)
+    }
+    
+    if (params?.hpsMax) {
+      urlParams.set('hps_max', params.hpsMax)
+    }
+    
+    if (params?.todayOnly) {
+      urlParams.set('today_only', 'true')
+    }
+    
+    if (params?.last30Days) {
+      urlParams.set('last_30_days', 'true')
+    }
+    
+    return urlParams.toString()
+  }
+
   // Function to refresh data (useful after favorite changes)
-  const refreshData = async () => {
+  const refreshData = async (searchParams?: SearchParams) => {
     const token = localStorage.getItem('token')
     if (!token) return
 
     try {
-      const response = await fetch('/api/paket?limit=1000')
+      const queryString = buildSearchParams(searchParams)
+      const response = await fetch(`/api/paket?${queryString}`)
       
       if (response.ok) {
         const result = await response.json()
         
         if (result.success && result.data) {
-          const transformedData = result.data.map((item: any) => ({
+          let transformedData = result.data.map((item: any) => ({
             id: item.id,
             md5_hash: item.md5_hash || '',
             kode_paket: item.kode_paket || '',
@@ -89,6 +130,42 @@ export function PaketDataTable() {
             lokasi_pekerjaan: item.lokasi_pekerjaan || '',
           }))
           
+          // Apply client-side filters for HPS range and date filters
+          if (searchParams) {
+            if (searchParams.hpsMin) {
+              const minHps = parseFloat(searchParams.hpsMin)
+              // Only apply filter if value is valid and non-negative
+              if (!isNaN(minHps) && minHps >= 0) {
+                transformedData = transformedData.filter(item => item.nilai_hps_paket >= minHps)
+              }
+            }
+            
+            if (searchParams.hpsMax) {
+              const maxHps = parseFloat(searchParams.hpsMax)
+              // Only apply filter if value is valid and non-negative
+              if (!isNaN(maxHps) && maxHps >= 0) {
+                transformedData = transformedData.filter(item => item.nilai_hps_paket <= maxHps)
+              }
+            }
+            
+            if (searchParams.todayOnly) {
+              const today = new Date().toISOString().split('T')[0]
+              transformedData = transformedData.filter(item => 
+                item.tanggal_pembuatan && item.tanggal_pembuatan.startsWith(today)
+              )
+            }
+            
+            if (searchParams.last30Days) {
+              const thirtyDaysAgo = new Date()
+              thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+              const thirtyDaysAgoStr = thirtyDaysAgo.toISOString().split('T')[0]
+              
+              transformedData = transformedData.filter(item => 
+                item.tanggal_pembuatan && item.tanggal_pembuatan >= thirtyDaysAgoStr
+              )
+            }
+          }
+          
           const dataWithFavorites = await checkAllFavoriteStatuses(transformedData)
           setData(dataWithFavorites)
         }
@@ -98,11 +175,13 @@ export function PaketDataTable() {
     }
   }
 
+  // Initial data fetch
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true)
-        const response = await fetch('/api/paket?limit=1000')
+        const queryString = buildSearchParams(searchParams)
+        const response = await fetch(`/api/paket?${queryString}`)
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`)
@@ -112,7 +191,7 @@ export function PaketDataTable() {
         
         if (result.success && result.data) {
           // Transform the data to match our schema
-          const transformedData = result.data.map((item: any) => ({
+          let transformedData = result.data.map((item: any) => ({
             id: item.id,
             md5_hash: item.md5_hash || '',
             kode_paket: item.kode_paket || '',
@@ -122,6 +201,42 @@ export function PaketDataTable() {
             nilai_hps_paket: parseFloat(item.nilai_hps_paket) || 0,
             lokasi_pekerjaan: item.lokasi_pekerjaan || '',
           }))
+          
+          // Apply client-side filters for HPS range and date filters
+          if (searchParams) {
+            if (searchParams.hpsMin) {
+              const minHps = parseFloat(searchParams.hpsMin)
+              // Only apply filter if value is valid and non-negative
+              if (!isNaN(minHps) && minHps >= 0) {
+                transformedData = transformedData.filter(item => item.nilai_hps_paket >= minHps)
+              }
+            }
+            
+            if (searchParams.hpsMax) {
+              const maxHps = parseFloat(searchParams.hpsMax)
+              // Only apply filter if value is valid and non-negative
+              if (!isNaN(maxHps) && maxHps >= 0) {
+                transformedData = transformedData.filter(item => item.nilai_hps_paket <= maxHps)
+              }
+            }
+            
+            if (searchParams.todayOnly) {
+              const today = new Date().toISOString().split('T')[0]
+              transformedData = transformedData.filter(item => 
+                item.tanggal_pembuatan && item.tanggal_pembuatan.startsWith(today)
+              )
+            }
+            
+            if (searchParams.last30Days) {
+              const thirtyDaysAgo = new Date()
+              thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+              const thirtyDaysAgoStr = thirtyDaysAgo.toISOString().split('T')[0]
+              
+              transformedData = transformedData.filter(item => 
+                item.tanggal_pembuatan && item.tanggal_pembuatan >= thirtyDaysAgoStr
+              )
+            }
+          }
           
           // Check favorite status for all items
           const dataWithFavorites = await checkAllFavoriteStatuses(transformedData)
@@ -143,7 +258,7 @@ export function PaketDataTable() {
     }
 
     fetchData()
-  }, [])
+  }, [searchParams])
 
   if (loading) {
     return (
@@ -186,6 +301,40 @@ export function PaketDataTable() {
 
   return (
     <div className="px-4 lg:px-6">
+      {/* Search Info */}
+      {searchParams && (
+        <div className="mb-4 p-3 bg-muted rounded-lg">
+          <p className="text-sm font-medium mb-2">Kriteria Pencarian:</p>
+          <div className="flex flex-wrap gap-2 text-xs">
+            {searchParams.keyword && (
+              <span className="px-2 py-1 bg-primary/10 text-primary rounded">
+                Keyword: "{searchParams.keyword}"
+              </span>
+            )}
+            {searchParams.hpsMin && (
+              <span className="px-2 py-1 bg-primary/10 text-primary rounded">
+                HPS Min: Rp {parseFloat(searchParams.hpsMin).toLocaleString('id-ID')}
+              </span>
+            )}
+            {searchParams.hpsMax && (
+              <span className="px-2 py-1 bg-primary/10 text-primary rounded">
+                HPS Max: Rp {parseFloat(searchParams.hpsMax).toLocaleString('id-ID')}
+              </span>
+            )}
+            {searchParams.todayOnly && (
+              <span className="px-2 py-1 bg-primary/10 text-primary rounded">
+                Hari Ini
+              </span>
+            )}
+            {searchParams.last30Days && (
+              <span className="px-2 py-1 bg-primary/10 text-primary rounded">
+                30 Hari Terakhir
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+      
       {totalCount > 0 && (
         <div className="mb-4">
           <p className="text-sm text-muted-foreground">
@@ -193,7 +342,7 @@ export function PaketDataTable() {
           </p>
         </div>
       )}
-      <DataTable data={data} onFavoriteChange={refreshData} />
+      <DataTable data={data} onFavoriteChange={() => refreshData(searchParams)} />
     </div>
   )
 }

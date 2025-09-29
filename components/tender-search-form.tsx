@@ -7,7 +7,19 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
-export function TenderSearchForm() {
+export interface SearchParams {
+  keyword: string
+  hpsMin: string
+  hpsMax: string
+  todayOnly: boolean
+  last30Days: boolean
+}
+
+interface TenderSearchFormProps {
+  onSearch: (params: SearchParams) => void
+}
+
+export function TenderSearchForm({ onSearch }: TenderSearchFormProps) {
   const [keyword, setKeyword] = useState("")
   const [hpsMin, setHpsMin] = useState("")
   const [hpsMax, setHpsMax] = useState("")
@@ -15,14 +27,42 @@ export function TenderSearchForm() {
   const [last30Days, setLast30Days] = useState(false)
 
   const handleSearch = () => {
-    // TODO: Implement search logic
-    console.log("Search criteria:", {
+    // Validate HPS range
+    const minValue = hpsMin ? parseFloat(hpsMin) : 0
+    const maxValue = hpsMax ? parseFloat(hpsMax) : Infinity
+    
+    if (hpsMin && hpsMax && minValue > maxValue) {
+      alert('Nilai HPS Minimum tidak boleh lebih besar dari HPS Maximum')
+      return
+    }
+    
+    const searchParams: SearchParams = {
       keyword,
       hpsMin,
       hpsMax,
       todayOnly,
       last30Days
-    })
+    }
+    
+    onSearch(searchParams)
+  }
+
+  const handleReset = () => {
+    setKeyword("")
+    setHpsMin("")
+    setHpsMax("")
+    setTodayOnly(false)
+    setLast30Days(false)
+    
+    const resetParams: SearchParams = {
+      keyword: "",
+      hpsMin: "",
+      hpsMax: "",
+      todayOnly: false,
+      last30Days: false
+    }
+    
+    onSearch(resetParams)
   }
 
   return (
@@ -50,9 +90,17 @@ export function TenderSearchForm() {
             <Input
               id="hps-min"
               type="number"
-              placeholder="Min"
+              min="0"
+              step="1000000"
+              placeholder="Min (Rp)"
               value={hpsMin}
-              onChange={(e) => setHpsMin(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value
+                // Only allow positive numbers
+                if (value === '' || (parseFloat(value) >= 0)) {
+                  setHpsMin(value)
+                }
+              }}
             />
           </div>
           <div className="space-y-2">
@@ -60,9 +108,17 @@ export function TenderSearchForm() {
             <Input
               id="hps-max"
               type="number"
-              placeholder="Max"
+              min="0"
+              step="1000000"
+              placeholder="Max (Rp)"
               value={hpsMax}
-              onChange={(e) => setHpsMax(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value
+                // Only allow positive numbers
+                if (value === '' || (parseFloat(value) >= 0)) {
+                  setHpsMax(value)
+                }
+              }}
             />
           </div>
         </div>
@@ -100,10 +156,13 @@ export function TenderSearchForm() {
           </div>
         </div>
 
-        {/* Search Button */}
-        <div className="pt-4">
-          <Button onClick={handleSearch} className="w-full">
+        {/* Search Buttons */}
+        <div className="pt-4 flex gap-2">
+          <Button onClick={handleSearch} className="flex-1">
             Cari Tender
+          </Button>
+          <Button onClick={handleReset} variant="outline" className="flex-1">
+            Reset
           </Button>
         </div>
       </CardContent>

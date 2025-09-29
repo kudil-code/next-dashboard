@@ -18,8 +18,33 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10');
     
     // Generate cache key based on parameters
-    const cacheKey = CacheService.generatePaketKey(q, page, limit);
-    const countCacheKey = CacheService.generatePaketCountKey(q);
+    const hpsMin = searchParams.get('hps_min');
+    const hpsMax = searchParams.get('hps_max');
+    const todayOnly = searchParams.get('today_only');
+    const last30Days = searchParams.get('last_30_days');
+    
+    // Validate that min is not greater than max
+    if (hpsMin && hpsMax) {
+      const minValue = parseFloat(hpsMin);
+      const maxValue = parseFloat(hpsMax);
+      if (!isNaN(minValue) && !isNaN(maxValue) && minValue > maxValue) {
+        // Return empty result if min > max
+        const emptyResult = {
+          success: true,
+          data: [],
+          pagination: {
+            total: 0,
+            page,
+            limit,
+            totalPages: 0
+          }
+        };
+        return NextResponse.json(emptyResult, { headers: cacheHeaders });
+      }
+    }
+    
+    const cacheKey = CacheService.generatePaketKey(q, page, limit, hpsMin || undefined, hpsMax || undefined, todayOnly || undefined, last30Days || undefined);
+    const countCacheKey = CacheService.generatePaketCountKey(q, hpsMin || undefined, hpsMax || undefined, todayOnly || undefined, last30Days || undefined);
     
     // Try to get from cache first
     const cacheResult = await CacheService.getOrSet(
@@ -32,9 +57,55 @@ export async function GET(request: NextRequest) {
         let whereClause = '';
         let params: any[] = [];
         
+        // Build WHERE clause based on search parameters
+        const conditions: string[] = [];
+        
         if (q) {
-          whereClause = `WHERE nama_paket LIKE ? OR kode_paket LIKE ?`;
-          params = [`%${q}%`, `%${q}%`];
+          conditions.push(`(nama_paket LIKE ? OR kode_paket LIKE ?)`);
+          params.push(`%${q}%`, `%${q}%`);
+        }
+        
+        const hpsMin = searchParams.get('hps_min');
+        const hpsMax = searchParams.get('hps_max');
+        
+        if (hpsMin) {
+          const minValue = parseFloat(hpsMin);
+          // Only add condition if value is valid and non-negative
+          if (!isNaN(minValue) && minValue >= 0) {
+            conditions.push(`nilai_hps_paket >= ?`);
+            params.push(minValue);
+          }
+        }
+        
+        if (hpsMax) {
+          const maxValue = parseFloat(hpsMax);
+          // Only add condition if value is valid and non-negative
+          if (!isNaN(maxValue) && maxValue >= 0) {
+            conditions.push(`nilai_hps_paket <= ?`);
+            params.push(maxValue);
+          }
+        }
+        
+        
+        const todayOnly = searchParams.get('today_only');
+        const last30Days = searchParams.get('last_30_days');
+        
+        if (todayOnly === 'true') {
+          const today = new Date().toISOString().split('T')[0];
+          conditions.push(`DATE(tanggal_pembuatan) = ?`);
+          params.push(today);
+        }
+        
+        if (last30Days === 'true') {
+          const thirtyDaysAgo = new Date();
+          thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+          const thirtyDaysAgoStr = thirtyDaysAgo.toISOString().split('T')[0];
+          conditions.push(`DATE(tanggal_pembuatan) >= ?`);
+          params.push(thirtyDaysAgoStr);
+        }
+        
+        if (conditions.length > 0) {
+          whereClause = `WHERE ${conditions.join(' AND ')}`;
         }
         
         // Get total count (try cache first)
@@ -60,7 +131,7 @@ export async function GET(request: NextRequest) {
         const [rows] = await pool.execute(
           `SELECT * FROM paket_pengadaan ${whereClause} ORDER BY id DESC LIMIT ? OFFSET ?`,
           [...params, limit, offset]
-        );
+        ) as [any[], any];
         
         return {
           success: true, 

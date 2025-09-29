@@ -144,9 +144,9 @@ export class CacheService {
   /**
    * Delete specific key from cache
    */
-  static del(key: string): number {
-    const deleted = cache.del(key);
-    console.log(`🗑️ [CACHE DELETE] Key: ${key}, Deleted: ${deleted} keys`);
+  static del(key: string): boolean {
+    const deleted = cache.delete(key);
+    console.log(`🗑️ [CACHE DELETE] Key: ${key}, Deleted: ${deleted}`);
     return deleted;
   }
 
@@ -155,7 +155,12 @@ export class CacheService {
    */
   static delPattern(pattern: string): number {
     const keys = cache.keys().filter(key => key.includes(pattern));
-    const deleted = cache.del(keys);
+    let deleted = 0;
+    keys.forEach(key => {
+      if (cache.delete(key)) {
+        deleted++;
+      }
+    });
     console.log(`🗑️ [CACHE DELETE PATTERN] Pattern: ${pattern}, Deleted: ${deleted} keys`);
     return deleted;
   }
@@ -208,18 +213,42 @@ export class CacheService {
   /**
    * Generate cache key for paket list with parameters
    */
-  static generatePaketKey(q?: string, page?: number, limit?: number): string {
+  static generatePaketKey(
+    q?: string, 
+    page?: number, 
+    limit?: number, 
+    hpsMin?: string, 
+    hpsMax?: string, 
+    todayOnly?: string, 
+    last30Days?: string
+  ): string {
     const search = q ? `:search:${q}` : '';
     const pagination = `:page:${page || 1}:limit:${limit || 10}`;
-    return `${CACHE_KEYS.PAKET_LIST}${search}${pagination}`;
+    const hpsMinFilter = hpsMin ? `:hpsMin:${hpsMin}` : '';
+    const hpsMaxFilter = hpsMax ? `:hpsMax:${hpsMax}` : '';
+    const todayFilter = todayOnly === 'true' ? ':today' : '';
+    const last30Filter = last30Days === 'true' ? ':last30' : '';
+    
+    return `${CACHE_KEYS.PAKET_LIST}${search}${pagination}${hpsMinFilter}${hpsMaxFilter}${todayFilter}${last30Filter}`;
   }
 
   /**
    * Generate cache key for paket count with search
    */
-  static generatePaketCountKey(q?: string): string {
+  static generatePaketCountKey(
+    q?: string, 
+    hpsMin?: string, 
+    hpsMax?: string, 
+    todayOnly?: string, 
+    last30Days?: string
+  ): string {
     const search = q ? `:search:${q}` : '';
-    return `${CACHE_KEYS.PAKET_COUNT}${search}`;
+    const hpsMinFilter = hpsMin ? `:hpsMin:${hpsMin}` : '';
+    const hpsMaxFilter = hpsMax ? `:hpsMax:${hpsMax}` : '';
+    const todayFilter = todayOnly === 'true' ? ':today' : '';
+    const last30Filter = last30Days === 'true' ? ':last30' : '';
+    
+    return `${CACHE_KEYS.PAKET_COUNT}${search}${hpsMinFilter}${hpsMaxFilter}${todayFilter}${last30Filter}`;
   }
 
   /**
